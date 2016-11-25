@@ -73,16 +73,28 @@ namespace Lab6
 
 		public static int CountOfMaintainedZayavok = 0;
 		public static int NumberOfTacts = 0;
+		public static int AllTimeZayavokInSystem = 0;
 
 		private static void Main(string[] args)
 		{
 			while (true)
 			{
-				var zayavka = GeneratorZayavok.GetZayavka();
+				Zayavka zayavka;
+				var isAbleToAddZayavka = GeneratorZayavok.TryGetZayavka(out zayavka);
+
+				if (
+					Blocks.All(
+						block => block.Nakopitel.Zayavki.Count == 0 && block.Obrabotchiks.All(obrabotchik => obrabotchik.Zayavka == null)) && !isAbleToAddZayavka)
+				{
+					break;
+				}
 
 				Block nextBlock = null;
 				foreach (var block in Blocks.Reverse())
 				{
+					block.Nakopitel.Zayavki.ToList().ForEach(zayavka1 => zayavka1.TimeInSystem++);
+					block.Obrabotchiks.Where(obrabotchik => obrabotchik.Zayavka != null).Select(obrabotchik => obrabotchik.Zayavka).ToList().ForEach(zayavka1 => zayavka1.TimeInSystem++);
+
 					block.Obrabotchiks.ToList().ForEach(obrabotchik => obrabotchik.OperateZayavka());
 
 					var obrabotchiks =
@@ -92,15 +104,16 @@ namespace Lab6
 					foreach (var obrabotchik in obrabotchiks)
 					{
 						var hasZayavkaBeenAdded = nextBlock?.TryMaintainNewZayavka(obrabotchik.Zayavka);
+						
+						if (nextBlock == null)
+						{
+							CountOfMaintainedZayavok++;
+							AllTimeZayavokInSystem += obrabotchik.Zayavka.TimeInSystem;
+						}
 
 						if (nextBlock == null || hasZayavkaBeenAdded.Value)
 						{
 							obrabotchik.Zayavka = null;
-						}
-
-						if (nextBlock == null)
-						{
-							CountOfMaintainedZayavok++;
 						}
 					}
 

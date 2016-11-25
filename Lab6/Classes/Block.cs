@@ -11,6 +11,11 @@ namespace Lab6.Classes
 
 		public bool TryMaintainNewZayavka(Zayavka zayavka)
 		{
+			if (zayavka == null)
+			{
+				return false;
+			}
+
 			var obrabotchikToAddZayavka = Obrabotchiks.FirstOrDefault(obrabotchik => obrabotchik.Zayavka == null);
 
 			if (obrabotchikToAddZayavka == null)
